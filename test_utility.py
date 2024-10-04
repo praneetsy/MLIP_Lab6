@@ -38,4 +38,17 @@ def feature_target_sample(housing_data_sample):
 def test_data_split(feature_target_sample):
     return_tuple = data_split(*feature_target_sample)
     # TODO test if the length of return_tuple is 4
-    raise NotImplemented
+    # Unpack the return from data_split
+    train_features, test_features, train_target, test_target = data_split(*feature_target_sample)
+
+    # Test if the length of return_tuple is 4 (train_features, test_features, train_target, test_target)
+    assert len((train_features, test_features, train_target, test_target)) == 4
+
+    # Assert that the lengths of the train and test sets are expected, given the test_size (assumed)
+    assert len(train_features) == len(train_target)
+    assert len(test_features) == len(test_target)
+
+    # Check if the split was deterministic if random_state is set
+    assert train_features.shape[0] + test_features.shape[0] == feature_target_sample[0].shape[0]
+    assert train_target.shape[0] + test_target.shape[0] == feature_target_sample[1].shape[0]
+    #raise NotImplemented
