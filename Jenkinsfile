@@ -44,9 +44,7 @@ pipeline {
         stage('Deploy') {
             when {
                 // Deploy stage is skipped if there are earlier failures
-                not {
-                    failed()
-                }
+                expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
             }
             steps {
                 sh '''
