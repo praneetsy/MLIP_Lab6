@@ -2,42 +2,72 @@ pipeline {
     agent any
 
     stages {
+        stage('Checkout SCM') {
+            steps {
+                // Checkout the code from Git
+                checkout scm
+            }
+        }
+
         stage('Build') {
             steps {
-                sh '''#!/bin/bash
-                echo 'In C or Java, we can compile our program in this step'
-                echo 'In Python, we can build our package here or skip this step'
+                sh '''
+                    # Create and activate a virtual environment
+                    python3 -m venv mlip
+                    source mlip/bin/activate
+
+                    # Upgrade pip and install required dependencies
+                    pip install --upgrade pip
+                    pip install -r requirements.txt || {
+                        echo "requirements.txt not found, installing manually"
+                        pip install pandas numpy scikit-learn pytest
+                    }
                 '''
             }
         }
+
         stage('Test') {
             steps {
-                sh '''#!/bin/bash
-                echo 'Test Step: We run testing tool like pytest here'
+                sh '''
+                    # Activate the virtual environment
+                    source mlip/bin/activate
 
-                # Create the virtual environment if it doesn't exist
-                if [ ! -d "mlip" ]; then
-                    python3 -m venv mlip
-                fi
+                    # Install scikit-learn in case it isn't in requirements.txt
+                    pip install scikit-learn
 
-                # Activate the virtual environment
-                source mlip/bin/activate
-
-                # Install dependencies (pytest, pandas, numpy, etc.)
-                pip install --upgrade pip
-                pip install pytest pandas numpy
-
-                # Run pytest in the virtual environment
-                pytest
-
+                    # Run tests using pytest
+                    pytest
                 '''
             }
         }
+
         stage('Deploy') {
-            steps {
-                echo 'In this step, we deploy our project'
-                echo 'Depending on the context, we may publish the project artifact or upload pickle files'
+            when {
+                // Deploy stage is skipped if there are earlier failures
+                not {
+                    failed()
+                }
             }
+            steps {
+                sh '''
+                    # Deployment steps (if any)
+                    echo "Deployment goes here."
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            // Archive the test results and cleanup if necessary
+            junit '**/test-results.xml'
+            cleanWs()
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+        success {
+            echo 'Pipeline succeeded!'
         }
     }
 }
