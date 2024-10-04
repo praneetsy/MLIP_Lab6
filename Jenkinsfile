@@ -15,14 +15,21 @@ pipeline {
                 sh '''#!/bin/bash
                 echo 'Test Step: We run testing tool like pytest here'
 
+                # Create the virtual environment if it doesn't exist
+                if [ ! -d "mlip" ]; then
+                    python3 -m venv mlip
+                fi
+
                 # Activate the virtual environment
                 source mlip/bin/activate
+
+                # Install dependencies (pytest, pandas, numpy, etc.)
+                pip install --upgrade pip
+                pip install pytest pandas numpy
 
                 # Run pytest in the virtual environment
                 pytest
 
-                # Comment out exit 1 after successful setup
-                # exit 1
                 '''
             }
         }
